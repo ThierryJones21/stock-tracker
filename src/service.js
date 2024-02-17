@@ -1,3 +1,5 @@
+// COULD ALSO TRY THIS https://www.npmjs.com/package/alphavantage
+
 const APIKEY = import.meta.env.ALPHAVANTAGE_KEY
 
 export const getStockData = async (symbol)=>{
