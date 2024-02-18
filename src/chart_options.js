@@ -1,9 +1,10 @@
+
 export const candleStickOptions = {
     chart: {
         type: "candlestick",
     },
     title: {
-        text: "CandleStick Chart",
+        text: "",
         align: "left",
     },
     xaxis: {

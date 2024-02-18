@@ -7,10 +7,13 @@ import LiveChart from './LiveChart'
 function App() {
 
   return (
-    <>
-      <h1>Stock Tracker</h1>
-      <LiveChart symbol={'TSLA'}/>
-    </>
+    <div>
+
+      <div>
+        <LiveChart />
+      </div>
+      
+    </div>
   )
 }
 

@@ -1,4 +1,12 @@
 // COULD ALSO TRY THIS https://www.npmjs.com/package/alphavantage
+// import yahooFinance from 'yahoo-finance2';
+
+
+// export const getStockData = async (symbol)=>{
+//     const data = await yahooFinance.search(`${symbol}`);
+   
+//     return data
+// }
 
 const APIKEY = import.meta.env.ALPHAVANTAGE_KEY
 

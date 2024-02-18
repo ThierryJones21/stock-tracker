@@ -54,6 +54,17 @@ button:focus-visible {
   outline: 4px auto -webkit-focus-ring-color;
 }
 
+.live-chart {
+  width: 100%;
+}
+
+@media (min-width: 768px) {
+  .live-chart {
+    height: 600px;
+    width: 1000px;
+  }
+}
+
 @media (prefers-color-scheme: light) {
   :root {
     color: #213547;
