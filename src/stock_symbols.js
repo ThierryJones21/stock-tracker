@@ -1,0 +1,27 @@
+export const stockSymbols = [
+    { symbol: "MSFT", name: "Microsoft Corporation" },
+    { symbol: "AAPL", name: "Apple Inc" },
+    { symbol: "NVDA", name: "NVIDIA Corporation" },
+    { symbol: "AVGO", name: "Broadcom Inc." },
+    { symbol: "TSM", name: "Taiwan Semiconductor Manufacturing Company Limited" },
+    { symbol: "ASML", name: "ASML Holding N.V." },
+    { symbol: "ORCL", name: "Oracle Corporation" },
+    { symbol: "AMD", name: "Advanced Micro Devices, Inc." },
+    { symbol: "CRM", name: "Salesforce, Inc." },
+    { symbol: "ADBE", name: "Adobe Inc." },
+    { symbol: "ACN", name: "Accenture plc" },
+    { symbol: "SAP", name: "SAP SE" },
+    { symbol: "CSCO", name: "Cisco Systems, Inc." },
+    { symbol: "INTC", name: "Intel Corporation" },
+    { symbol: "INTU", name: "Intuit Inc." },
+    { symbol: "IBM", name: "International Business Machines Corporation" },
+    { symbol: "QCOM", name: "QUALCOMM Incorporated" },
+    { symbol: "AMAT", name: "Applied Materials, Inc." },
+    { symbol: "UBER", name: "Uber Technologies, Inc." },
+    { symbol: "NOW", name: "ServiceNow, Inc." },
+    { symbol: "TXN", name: "Texas Instruments Incorporated" },
+    { symbol: "LRCX", name: "Lam Research Corporation" },
+    { symbol: "SONY", name: "Sony Group Corporation" },
+    { symbol: "PANW", name: "Palo Alto Networks, Inc." }
+  ];
+  

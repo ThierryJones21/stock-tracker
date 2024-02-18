@@ -3,17 +3,20 @@ import { getStockData } from "./service";
 import { formattedStockData } from "./utils";
 import ReactApexChart from "react-apexcharts";
 import { candleStickOptions } from "./chart_options";
+import { stockSymbols } from "./stock_symbols"; 
 
 const LiveChart = () => {
-  const [symbol, setSymbol] = useState('TSLA');
+  const [symbol, setSymbol] = useState("TSLA");
+  const [customSymbol, setCustomSymbol] = useState("");
   const [from, setFrom] = useState("2023-10-10");
-  const [to, setTo] = useState("2023-12-10");
+  const [to, setTo] = useState("2024-02-10");
   const [stockData, setStockData] = useState({});
   const [chartHeight, setChartHeight] = useState(600);
   const [chartWidth, setChartWidth] = useState(1000);
 
   const fetchData = () => {
-    getStockData(symbol, from, to).then((data) => setStockData(data));
+    const selectedSymbol = customSymbol || symbol;
+    getStockData(selectedSymbol, from, to).then((data) => setStockData(data));
   };
 
   useEffect(() => {
@@ -27,23 +30,41 @@ const LiveChart = () => {
     window.addEventListener("resize", handleResize);
     handleResize();
 
+    fetchData(); // Fetch data when component mounts
+
     return () => window.removeEventListener("resize", handleResize);
   }, []);
+
+  const handleSymbolChange = (event) => {
+    const selectedSymbol = event.target.value;
+    setSymbol(selectedSymbol);
+    setCustomSymbol(""); // Clear custom symbol input when dropdown selection changes
+  };
 
   const handleButtonClick = () => {
     fetchData();
   };
 
-  const weeklySeriesData = useMemo(() => formattedStockData(stockData), [stockData]);
+  const weeklySeriesData = useMemo(() => formattedStockData(stockData), [
+    stockData,
+  ]);
 
   return (
     <div>
       <div>
+        <select value={symbol} onChange={handleSymbolChange}>
+          <option value="">Select a stock symbol</option>
+          {stockSymbols.map((stock) => (
+            <option key={stock.symbol} value={stock.symbol}>
+              {stock.name}
+            </option>
+          ))}
+        </select>
         <input
           type="text"
-          value={symbol}
-          onChange={(event) => setSymbol(event.target.value)}
-          placeholder="Enter stock symbol..."
+          value={customSymbol}
+          onChange={(event) => setCustomSymbol(event.target.value)}
+          placeholder="Enter custom symbol..."
         />
         <input
           type="date"
@@ -55,14 +76,14 @@ const LiveChart = () => {
           value={to}
           onChange={(event) => setTo(event.target.value)}
         />
-        <button onClick={handleButtonClick}>Update Chart</button> 
+        <button onClick={handleButtonClick}>Update Chart</button>
       </div>
-      <h1>{symbol}</h1>
+      <h1>{customSymbol || symbol}</h1>
       <ReactApexChart
         series={[
           {
-            data: weeklySeriesData
-          }
+            data: weeklySeriesData,
+          },
         ]}
         options={candleStickOptions}
         type="candlestick"
