@@ -5,46 +5,36 @@ import ReactApexChart from "react-apexcharts";
 import { candleStickOptions } from "./chart_options";
 
 const LiveChart = () => {
-  const [symbol, setSymbol] = useState('TSLA'); // Initialize with a default symbol
+  const [symbol, setSymbol] = useState('TSLA');
+  const [from, setFrom] = useState("2023-10-10");
+  const [to, setTo] = useState("2023-12-10");
   const [stockData, setStockData] = useState({});
   const [chartHeight, setChartHeight] = useState(600);
   const [chartWidth, setChartWidth] = useState(1000);
 
   const fetchData = () => {
-    getStockData(symbol).then((data) => setStockData(data));
-    console.log(stockData)
+    getStockData(symbol, from, to).then((data) => setStockData(data));
   };
-
-  useEffect(() => {
-    fetchData(); // Fetch data on initial render
-  }, [symbol]); // Re-fetch data when symbol changes
-
-  const handleSymbolChange = (event) => {
-    setSymbol(event.target.value); // Update symbol state with the entered value
-  };
-
-  const handleButtonClick = () => {
-    fetchData(); // Fetch data when the button is clicked
-  };
-
-  const weeklySeriesData = useMemo(() => formattedStockData(stockData), [stockData]);
 
   useEffect(() => {
     const handleResize = () => {
-      // Adjust height and width based on screen size
-      const newHeight = window.innerHeight * 0.8; // Adjust as needed
-      const newWidth = window.innerWidth * 0.8; // Adjust as needed
+      const newHeight = window.innerHeight * 0.8;
+      const newWidth = window.innerWidth * 0.8;
       setChartHeight(newHeight);
       setChartWidth(newWidth);
     };
 
-    // Update dimensions on resize
     window.addEventListener("resize", handleResize);
-    handleResize(); // Initialize dimensions
+    handleResize();
 
-    // Cleanup on unmount
     return () => window.removeEventListener("resize", handleResize);
   }, []);
+
+  const handleButtonClick = () => {
+    fetchData();
+  };
+
+  const weeklySeriesData = useMemo(() => formattedStockData(stockData), [stockData]);
 
   return (
     <div>
@@ -52,11 +42,22 @@ const LiveChart = () => {
         <input
           type="text"
           value={symbol}
-          onChange={handleSymbolChange}
+          onChange={(event) => setSymbol(event.target.value)}
           placeholder="Enter stock symbol..."
         />
-        <button onClick={handleButtonClick}>Update Chart</button> {/* Button to update the chart */}
+        <input
+          type="date"
+          value={from}
+          onChange={(event) => setFrom(event.target.value)}
+        />
+        <input
+          type="date"
+          value={to}
+          onChange={(event) => setTo(event.target.value)}
+        />
+        <button onClick={handleButtonClick}>Update Chart</button> 
       </div>
+      <h1>{symbol}</h1>
       <ReactApexChart
         series={[
           {
