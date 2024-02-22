@@ -31,8 +31,6 @@ def fetch_stock_data(symbol, from_date, to_date):
 
     historical_data = data['historical']
 
-    print(historical_data)
-
     reversed_data = historical_data[::-1]
     return reversed_data
 
@@ -227,9 +225,9 @@ def generate_date_range(start_date, end_date):
 
 
 def main():
-    symbol = 'NVDA'
-    start_date = '2023-09-01'
-    end_date= '2024-01-01'
+    symbol = 'TSLA'
+    start_date = '2021-10-10'
+    end_date= '2024-02-17'
 
     run_code(symbol, start_date, end_date)
 
