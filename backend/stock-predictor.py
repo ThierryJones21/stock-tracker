@@ -59,10 +59,10 @@ def build_lstm_model(seq_length):
                     layers.Dropout(0.2),
                     layers.Dense(1)])
 
-    model.compile(loss='mse', 
+    model.compile(loss='mse',
               optimizer=Adam(learning_rate=0.001),
               metrics=['mean_absolute_error'])
-    
+
     # model = Sequential()
     # model.add(LSTM(units=50, return_sequences=True, input_shape=(seq_length, 1)))
     # model.add(Dropout(0.2))
@@ -90,7 +90,7 @@ def calculate_accuracy(model, X_test, y_test):
     rmse = np.sqrt(mse)
     return rmse
 
-def run_code(symbol, start_date, end_date):
+def run_code(symbol, start_date, end_date, future_days):
 
     seq_length = 20
     epochs = 100
@@ -114,19 +114,6 @@ def run_code(symbol, start_date, end_date):
     X_val, y_val = X[q_80:q_90], y[q_80:q_90]
     X_test, y_test = X[q_90:], y[q_90:]
 
-    total_length_combined = len(X_train) + len(X_val) + len(X_test)
-    print("Total length of X_train + X_val + X_test:", total_length_combined)
-    print("Total of X", len(X))
-
-    total_length_y_combined = len(y_train) + len(y_val) + len(y_test)
-    print("Total length of y_train + y_val + y_test:", total_length_y_combined)
-    print("Total of y:", len(y))
-
-
-
-    # dates_train = dates[:q_80]
-    # dates_val = dates[q_80:q_90]
-    # dates_test = dates[q_90:]
 
     dates_train = [dates[i] for i in range(q_80)]
     dates_val = [dates[q_80 + i] for i in range(len(y_val))]
@@ -139,9 +126,9 @@ def run_code(symbol, start_date, end_date):
     dates_test = [datetime.strptime(date_str, '%Y-%m-%d').date() for date_str in dates_test]
 
     # Plotting
-    plt.plot(dates_train, y_train)
-    plt.plot(dates_val, y_val)
-    plt.plot(dates_test, y_test)
+    plt.plot(dates_train, y_train, color='orange')
+    plt.plot(dates_val, y_val, color='red')
+    plt.plot(dates_test, y_test, color='green')
 
     plt.legend(['Train', 'Validation', 'Test'])
     plt.show()
@@ -161,33 +148,33 @@ def run_code(symbol, start_date, end_date):
 
     # Predict using the trained model
     y_train_pred = model.predict(X_train)
-    y_val_pred = model.predict(X_val)  
+    y_val_pred = model.predict(X_val)
     y_test_pred = model.predict(X_test)
-    
+
 
     # Inverse transform the predicted and actual values
     y_train_actual = scaler.inverse_transform(y_train.reshape(-1, 1))
     y_train_pred_actual = scaler.inverse_transform(y_train_pred)
 
     y_val_actual = scaler.inverse_transform(y_val.reshape(-1, 1))
-    y_val_pred_actual = scaler.inverse_transform(y_val_pred)  
+    y_val_pred_actual = scaler.inverse_transform(y_val_pred)
 
     y_test_actual = scaler.inverse_transform(y_test.reshape(-1, 1))
     y_test_pred_actual = scaler.inverse_transform(y_test_pred)
-    
+
 
     plt.figure(figsize=(10, 6))
 
     # Plot training data
-    plt.plot(dates_train, y_train_actual, label='Training Actual')
+    plt.plot(dates_train, y_train_actual,color='blue', label='Training Actual')
     plt.plot(dates_train, y_train_pred_actual, color='orange', label='Training Predicted')
 
     # Plot validation data
-    plt.plot(dates_val, y_val_actual, label='Validation Actual')
-    plt.plot(dates_val, y_val_pred_actual, color='blue', label='Validation Predicted')
+    plt.plot(dates_val, y_val_actual, color='blue', label='Validation Actual')
+    plt.plot(dates_val, y_val_pred_actual, color='red', label='Validation Predicted')
 
     # Plot testing data
-    plt.plot(dates_test, y_test_actual, label='Testing Actual')
+    plt.plot(dates_test, y_test_actual,color='blue', label='Testing Actual')
     plt.plot(dates_test, y_test_pred_actual, color='green', label='Testing Predicted')
 
 
@@ -196,7 +183,7 @@ def run_code(symbol, start_date, end_date):
     # Extend predictions for additional days
     future_prices = []
     X_extend = X_test[-1:].copy()
-    for _ in range(7):  # Predict for the next 7 days
+    for _ in range(future_days):  # Predict for the next 7 days
         future_price = model.predict(X_extend)[0][0]
         future_prices.append(future_price)
         X_extend = np.roll(X_extend, -1)
@@ -207,7 +194,7 @@ def run_code(symbol, start_date, end_date):
 
 
     # # Extend predictions
-    future_dates = generate_date_range(dates_test[-1] + timedelta(days=1), dates_test[-1] + timedelta(days=7))
+    future_dates = generate_date_range(dates_test[-1] + timedelta(days=1), dates_test[-1] + timedelta(days=future_days))
     plt.plot(future_dates, future_prices_actual, color='purple', label='Future Predictions')
 
     plt.title('Actual vs. Predicted Closing Prices')
@@ -226,10 +213,11 @@ def generate_date_range(start_date, end_date):
 
 def main():
     symbol = 'TSLA'
-    start_date = '2021-10-10'
-    end_date= '2024-02-17'
+    start_date = '2023-06-10'
+    end_date= '2024-01-17'
+    future_days = 3
 
-    run_code(symbol, start_date, end_date)
+    run_code(symbol, start_date, end_date, future_days)
 
 
 if __name__ == "__main__":
