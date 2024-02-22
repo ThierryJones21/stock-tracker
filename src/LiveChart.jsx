@@ -4,6 +4,10 @@ import { formattedStockData } from "./utils";
 import ReactApexChart from "react-apexcharts";
 import { candleStickOptions } from "./chart_options";
 import { stockSymbols } from "./stock_symbols"; 
+import predictStocksAPI from "./api/predictions";
+
+
+
 
 const LiveChart = () => {
   const [symbol, setSymbol] = useState("TSLA");
@@ -14,9 +18,23 @@ const LiveChart = () => {
   const [chartHeight, setChartHeight] = useState(600);
   const [chartWidth, setChartWidth] = useState(1000);
 
+  const [predictions, setPredictions] = useState(null);
+
+  const fetchPredictions = async () => {
+    try {
+      const objectExample = []; // Your object example data here
+      const result = await predictStocksAPI(objectExample);
+      setPredictions(result);
+    } catch (error) {
+      console.error('Error fetching predictions:', error);
+    }
+  };
+
   const fetchData = () => {
     const selectedSymbol = customSymbol || symbol;
     getStockData(selectedSymbol, from, to).then((data) => setStockData(data));
+    
+    fetchPredictions();
   };
 
   useEffect(() => {
@@ -79,6 +97,8 @@ const LiveChart = () => {
         <button onClick={handleButtonClick}>Update Chart</button>
       </div>
       <h1>{customSymbol || symbol}</h1>
+      <div>
+    </div>
       <ReactApexChart
         series={[
           {
