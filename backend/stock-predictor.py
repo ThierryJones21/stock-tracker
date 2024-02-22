@@ -185,16 +185,21 @@ def run_code(symbol, start_date, end_date, future_days):
     X_extend = X_test[-1:].copy()
     for _ in range(future_days):  # Predict for the next 7 days
         future_price = model.predict(X_extend)[0][0]
+
         future_prices.append(future_price)
         X_extend = np.roll(X_extend, -1)
         X_extend[-1][-1] = future_price
 
     future_prices_actual = scaler.inverse_transform(np.array(future_prices).reshape(-1, 1))
 
-
-
     # # Extend predictions
     future_dates = generate_date_range(dates_test[-1] + timedelta(days=1), dates_test[-1] + timedelta(days=future_days))
+
+    data = list(zip(future_dates, future_prices_actual))
+
+    print(tabulate(data, headers=['future_dates', 'future_prices_actual'], tablefmt='grid'))
+
+
     plt.plot(future_dates, future_prices_actual, color='purple', label='Future Predictions')
 
     plt.title('Actual vs. Predicted Closing Prices')
@@ -215,7 +220,7 @@ def main():
     symbol = 'TSLA'
     start_date = '2023-06-10'
     end_date= '2024-01-17'
-    future_days = 3
+    future_days = 10
 
     run_code(symbol, start_date, end_date, future_days)
 
