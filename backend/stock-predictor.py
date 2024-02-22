@@ -28,14 +28,18 @@ def fetch_stock_data(symbol, from_date, to_date):
     api_url = f"https://financialmodelingprep.com/api/v3/historical-price-full/{symbol}?apikey={api_key_fmp}&from={from_date}&to={to_date}"
     response = requests.get(api_url)
     data = response.json()
-    return data['historical']
+
+    historical_data = data['historical']
+
+    reversed_data = historical_data[::-1] # for data to be from old -> new
+    return reversed_data
 
 # Define function for data preprocessing
 def preprocess_data(data):
     closing_prices = [day['close'] for day in data]
     scaler = MinMaxScaler(feature_range=(0, 1))
     scaled_data = scaler.fit_transform(np.array(closing_prices).reshape(-1, 1))
-    return scaled_data, scaler
+    return scaled_data, scaler, [day['date'] for day in data]
 
 # Define function to create sequences for LSTM
 def create_sequences(data, seq_length):
@@ -96,17 +100,68 @@ def run_code(symbol, start_date, end_date):
     # Fetch data
     stock_data = fetch_stock_data(symbol, start_date, end_date)
 
+    print(tabulate(stock_data, headers="firstrow"))
+
     # Preprocess data
-    scaled_data, scaler = preprocess_data(stock_data)
+    scaled_data, scaler, dates = preprocess_data(stock_data)
 
     # Create sequences
     X, y = create_sequences(scaled_data, seq_length)
 
-    # Split data into training and testing sets
-    # 80 % split
-    split_index = int(0.8 * len(X))
-    X_train, X_test = X[:split_index], X[split_index:]
-    y_train, y_test = y[:split_index], y[split_index:]
+    # Split data into training, validation, and testing sets
+    q_80 = int(len(X) * 0.8)
+    q_90 = int(len(X) * 0.9)
+
+    X_train, y_train = X[:q_80], y[:q_80]
+    X_val, y_val = X[q_80:q_90], y[q_80:q_90]
+    X_test, y_test = X[q_90:], y[q_90:]
+
+    total_length_combined = len(X_train) + len(X_val) + len(X_test)
+    print("Total length of X_train + X_val + X_test:", total_length_combined)
+    print("Total of X", len(X))
+
+    total_length_y_combined = len(y_train) + len(y_val) + len(y_test)
+    print("Total length of y_train + y_val + y_test:", total_length_y_combined)
+    print("Total of y:", len(y))
+
+
+
+    # dates_train = dates[:q_80]
+    # dates_val = dates[q_80:q_90]
+    # dates_test = dates[q_90:]
+
+    dates_train = [dates[i] for i in range(q_80)]
+    dates_val = [dates[q_80 + i] for i in range(len(y_val))]
+    dates_test = [dates[q_90 + i] for i in range(len(y_test))]
+
+
+
+    dates_train = [datetime.strptime(date_str, '%Y-%m-%d').date() for date_str in dates_train]
+    dates_val = [datetime.strptime(date_str, '%Y-%m-%d').date() for date_str in dates_val]
+    dates_test = [datetime.strptime(date_str, '%Y-%m-%d').date() for date_str in dates_test]
+
+    total_length_dates_combined = len(dates_train) + len(dates_val) + len(dates_test)
+    print("Total length of dates_train + dates_val + dates_test:", total_length_dates_combined)
+    print("Total of dates:", len(dates))
+
+    # print("Length of entire dataset:", len(X))
+    # print("Length of X_test:", len(X_test))
+    print("Length of y_test:", len(y_test))
+    print("Length of dates_test:", len(dates_test))
+
+    # Ensure the lengths of dates_test and y_test are the same
+    # y_test = y_test[:len(dates_test)]
+    # y_test = y_test.reshape(-1)
+
+    # print(tabulate(zip(dates_test, y_test), headers=['Date', 'Y_Test']))
+
+    # Plotting
+    plt.plot(dates_train, y_train)
+    plt.plot(dates_val, y_val)
+    plt.plot(dates_test, y_test)
+
+    plt.legend(['Train', 'Validation', 'Test'])
+    plt.show()
 
     # Reshape data for LSTM
     X_train = X_train.reshape((X_train.shape[0], X_train.shape[1], 1))
@@ -116,7 +171,7 @@ def run_code(symbol, start_date, end_date):
     model = build_lstm_model(seq_length)
 
     # Train model
-    model = train_model(model, X_train, y_train, X_val, y_val epochs, batch_size)
+    model = train_model(model, X_train, y_train, X_val, y_val, epochs, batch_size)
 
     # Save model
     save_model(model, model_filename)
@@ -141,14 +196,6 @@ def run_code(symbol, start_date, end_date):
         X_extend[-1][-1] = future_price
 
     future_prices_actual = scaler.inverse_transform(np.array(future_prices).reshape(-1, 1))
-
-    table_data = [["Day", "Future Price"]]
-    for i, price in enumerate(future_prices_actual, 1):
-        table_data.append([f"Day {i}", f"${price[0]:.2f}"])
-
-    # Print the table
-    print(tabulate(table_data, headers="firstrow", tablefmt="fancy_grid"))
-
 
     plt.figure(figsize=(10, 6))
 
@@ -185,7 +232,7 @@ def generate_date_range(start_date, end_date):
 def main():
     symbol = 'TSLA'
     start_date = '2023-01-01'
-    end_date = '2024-01-01'
+    end_date= '2024-01-01'
 
     run_code(symbol, start_date, end_date)
 
