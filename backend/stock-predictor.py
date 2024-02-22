@@ -31,7 +31,9 @@ def fetch_stock_data(symbol, from_date, to_date):
 
     historical_data = data['historical']
 
-    reversed_data = historical_data[::-1] # for data to be from old -> new
+    print(historical_data)
+
+    reversed_data = historical_data[::-1]
     return reversed_data
 
 # Define function for data preprocessing
@@ -99,8 +101,6 @@ def run_code(symbol, start_date, end_date):
 
     # Fetch data
     stock_data = fetch_stock_data(symbol, start_date, end_date)
-
-    print(tabulate(stock_data, headers="firstrow"))
 
     # Preprocess data
     scaled_data, scaler, dates = preprocess_data(stock_data)
@@ -179,39 +179,46 @@ def run_code(symbol, start_date, end_date):
     # Predict using the trained model
     y_train_pred = model.predict(X_train)
     y_test_pred = model.predict(X_test)
+    y_val_pred = model.predict(X_val)  
 
     # Inverse transform the predicted and actual values
     y_train_actual = scaler.inverse_transform(y_train.reshape(-1, 1))
     y_train_pred_actual = scaler.inverse_transform(y_train_pred)
     y_test_actual = scaler.inverse_transform(y_test.reshape(-1, 1))
     y_test_pred_actual = scaler.inverse_transform(y_test_pred)
+    y_val_actual = scaler.inverse_transform(y_val.reshape(-1, 1))
+    y_val_pred_actual = scaler.inverse_transform(y_val_pred)  
 
-    # Extend predictions for additional days
-    future_prices = []
-    X_extend = X_test[-1:].copy()
-    for _ in range(7):  # Predict for the next 7 days
-        future_price = model.predict(X_extend)[0][0]
-        future_prices.append(future_price)
-        X_extend = np.roll(X_extend, -1)
-        X_extend[-1][-1] = future_price
-
-    future_prices_actual = scaler.inverse_transform(np.array(future_prices).reshape(-1, 1))
 
     plt.figure(figsize=(10, 6))
 
     # Plot training data
-    start_date = datetime.strptime(start_date, '%Y-%m-%d')
-    train_dates = generate_date_range(start_date, start_date + timedelta(days=len(y_train_actual) - 1))
-    plt.plot(train_dates, y_train_actual, label='Training Actual')
-    plt.plot(train_dates, y_train_pred_actual, color='orange', label='Training Predicted')
+    plt.plot(dates_train, y_train_actual, label='Training Actual')
+    plt.plot(dates_train, y_train_pred_actual, color='orange', label='Training Predicted')
 
     # Plot testing data
-    test_start_date = start_date + timedelta(days=len(y_train_actual))
-    test_dates = generate_date_range(test_start_date, test_start_date + timedelta(days=len(y_test_actual) - 1))
-    plt.plot(test_dates, y_test_actual, label='Testing Actual')
-    plt.plot(test_dates, y_test_pred_actual, color='green', label='Testing Predicted')
+    plt.plot(dates_test, y_test_actual, label='Testing Actual')
+    plt.plot(dates_test, y_test_pred_actual, color='green', label='Testing Predicted')
 
-    # # Extend predictions
+    # Plot validation data
+    plt.plot(dates_val, y_val_actual, label='Validation Actual')
+    plt.plot(dates_val, y_val_pred_actual, color='blue', label='Validation Predicted')
+
+
+    # # Extend predictions for additional days
+    # future_prices = []
+    # X_extend = X_test[-1:].copy()
+    # for _ in range(7):  # Predict for the next 7 days
+    #     future_price = model.predict(X_extend)[0][0]
+    #     future_prices.append(future_price)
+    #     X_extend = np.roll(X_extend, -1)
+    #     X_extend[-1][-1] = future_price
+
+    # future_prices_actual = scaler.inverse_transform(np.array(future_prices).reshape(-1, 1))
+
+
+
+    # # # Extend predictions
     # future_dates = generate_date_range(test_dates[-1] + timedelta(days=1), test_dates[-1] + timedelta(days=seq_length))
     # plt.plot(future_dates, future_prices_actual, color='purple', label='Future Predictions')
 
