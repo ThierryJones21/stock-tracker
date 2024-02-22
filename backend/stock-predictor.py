@@ -140,21 +140,6 @@ def run_code(symbol, start_date, end_date):
     dates_val = [datetime.strptime(date_str, '%Y-%m-%d').date() for date_str in dates_val]
     dates_test = [datetime.strptime(date_str, '%Y-%m-%d').date() for date_str in dates_test]
 
-    total_length_dates_combined = len(dates_train) + len(dates_val) + len(dates_test)
-    print("Total length of dates_train + dates_val + dates_test:", total_length_dates_combined)
-    print("Total of dates:", len(dates))
-
-    # print("Length of entire dataset:", len(X))
-    # print("Length of X_test:", len(X_test))
-    print("Length of y_test:", len(y_test))
-    print("Length of dates_test:", len(dates_test))
-
-    # Ensure the lengths of dates_test and y_test are the same
-    # y_test = y_test[:len(dates_test)]
-    # y_test = y_test.reshape(-1)
-
-    # print(tabulate(zip(dates_test, y_test), headers=['Date', 'Y_Test']))
-
     # Plotting
     plt.plot(dates_train, y_train)
     plt.plot(dates_val, y_val)
@@ -178,17 +163,20 @@ def run_code(symbol, start_date, end_date):
 
     # Predict using the trained model
     y_train_pred = model.predict(X_train)
-    y_test_pred = model.predict(X_test)
     y_val_pred = model.predict(X_val)  
+    y_test_pred = model.predict(X_test)
+    
 
     # Inverse transform the predicted and actual values
     y_train_actual = scaler.inverse_transform(y_train.reshape(-1, 1))
     y_train_pred_actual = scaler.inverse_transform(y_train_pred)
-    y_test_actual = scaler.inverse_transform(y_test.reshape(-1, 1))
-    y_test_pred_actual = scaler.inverse_transform(y_test_pred)
+
     y_val_actual = scaler.inverse_transform(y_val.reshape(-1, 1))
     y_val_pred_actual = scaler.inverse_transform(y_val_pred)  
 
+    y_test_actual = scaler.inverse_transform(y_test.reshape(-1, 1))
+    y_test_pred_actual = scaler.inverse_transform(y_test_pred)
+    
 
     plt.figure(figsize=(10, 6))
 
@@ -196,31 +184,33 @@ def run_code(symbol, start_date, end_date):
     plt.plot(dates_train, y_train_actual, label='Training Actual')
     plt.plot(dates_train, y_train_pred_actual, color='orange', label='Training Predicted')
 
-    # Plot testing data
-    plt.plot(dates_test, y_test_actual, label='Testing Actual')
-    plt.plot(dates_test, y_test_pred_actual, color='green', label='Testing Predicted')
-
     # Plot validation data
     plt.plot(dates_val, y_val_actual, label='Validation Actual')
     plt.plot(dates_val, y_val_pred_actual, color='blue', label='Validation Predicted')
 
-
-    # # Extend predictions for additional days
-    # future_prices = []
-    # X_extend = X_test[-1:].copy()
-    # for _ in range(7):  # Predict for the next 7 days
-    #     future_price = model.predict(X_extend)[0][0]
-    #     future_prices.append(future_price)
-    #     X_extend = np.roll(X_extend, -1)
-    #     X_extend[-1][-1] = future_price
-
-    # future_prices_actual = scaler.inverse_transform(np.array(future_prices).reshape(-1, 1))
+    # Plot testing data
+    plt.plot(dates_test, y_test_actual, label='Testing Actual')
+    plt.plot(dates_test, y_test_pred_actual, color='green', label='Testing Predicted')
 
 
 
-    # # # Extend predictions
-    # future_dates = generate_date_range(test_dates[-1] + timedelta(days=1), test_dates[-1] + timedelta(days=seq_length))
-    # plt.plot(future_dates, future_prices_actual, color='purple', label='Future Predictions')
+
+    # Extend predictions for additional days
+    future_prices = []
+    X_extend = X_test[-1:].copy()
+    for _ in range(7):  # Predict for the next 7 days
+        future_price = model.predict(X_extend)[0][0]
+        future_prices.append(future_price)
+        X_extend = np.roll(X_extend, -1)
+        X_extend[-1][-1] = future_price
+
+    future_prices_actual = scaler.inverse_transform(np.array(future_prices).reshape(-1, 1))
+
+
+
+    # # Extend predictions
+    future_dates = generate_date_range(dates_test[-1] + timedelta(days=1), dates_test[-1] + timedelta(days=7))
+    plt.plot(future_dates, future_prices_actual, color='purple', label='Future Predictions')
 
     plt.title('Actual vs. Predicted Closing Prices')
     plt.xlabel('Date')
@@ -237,8 +227,8 @@ def generate_date_range(start_date, end_date):
 
 
 def main():
-    symbol = 'TSLA'
-    start_date = '2023-01-01'
+    symbol = 'NVDA'
+    start_date = '2023-09-01'
     end_date= '2024-01-01'
 
     run_code(symbol, start_date, end_date)
